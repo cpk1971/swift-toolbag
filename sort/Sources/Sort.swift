@@ -20,8 +20,13 @@ struct Sort : AsyncParsableCommand {
         help: "reverse sort order")
     var reverseOrder: Bool = false
 
+    @Flag(
+        name: [.long, .customShort("i")],
+        help: "ignore case in sort order"
+    )
+    var ignoreCase: Bool = false
+
     mutating func run() async throws {
-        print("Your file: \(inputFile?.relativePath ?? "<stdin>")")
         try await sort()
     }
 
@@ -40,15 +45,19 @@ struct Sort : AsyncParsableCommand {
             lines.append(line)
         }
 
-        var transform = nop
+        var transform: StringUnaryOperator = { $0 }
         
         // will build these iterably as we have more
         if(ignoreLeadingWhitespace) {
-            transform = compareIgnoreLeading
+            transform = { $0.replacing(#/^ */#, with: "") }
         }
 
-        let direction: StringPredicate = reverseOrder ? (>) : (<)
-        let predicate = composeFrom(transform: transform, predicate: direction)
+        if(ignoreCase) {
+            transform = composeTransform(from: transform, and: { $0.lowercased() })
+        }
+
+        let predicate = 
+            composePredicate(from: transform, and: reverseOrder ? (>) : (<))
         lines.sorted(by: predicate).forEach { print($0) }
     }
 }
@@ -56,15 +65,15 @@ struct Sort : AsyncParsableCommand {
 internal typealias StringUnaryOperator = (String) -> String
 internal typealias StringPredicate = (String, String) -> Bool
 
-internal func composeFrom(transform: @escaping StringUnaryOperator, predicate: @escaping StringPredicate) -> StringPredicate {
+internal func composePredicate(
+        from transform: @escaping StringUnaryOperator, 
+        and predicate: @escaping StringPredicate) -> StringPredicate {
     { predicate(transform($0), transform($1)) }
 }
 
-internal func nop(_ a: String) -> String {
-    a
-}
-
-@available(macOS 13.0, *)
-internal func compareIgnoreLeading(_ a: String) -> String {
-    a.replacing(#/^ */#, with: "")    
+internal func composeTransform(
+    from transform: @escaping StringUnaryOperator, 
+    and otherTransform: @escaping StringUnaryOperator) -> StringUnaryOperator {
+    
+    { transform(otherTransform($0)) }
 }
