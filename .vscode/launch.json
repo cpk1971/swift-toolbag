@@ -1,0 +1,28 @@
+{
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "sourceLanguages": [
+                "swift"
+            ],
+            "args": [],
+            "cwd": "${workspaceFolder:swift-toolbag}/sort",
+            "name": "Debug sort (sort)",
+            "program": "${workspaceFolder:swift-toolbag}/sort/.build/debug/sort",
+            "preLaunchTask": "swift: Build Debug sort (sort)"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "sourceLanguages": [
+                "swift"
+            ],
+            "args": [],
+            "cwd": "${workspaceFolder:swift-toolbag}/sort",
+            "name": "Release sort (sort)",
+            "program": "${workspaceFolder:swift-toolbag}/sort/.build/release/sort",
+            "preLaunchTask": "swift: Build Release sort (sort)"
+        }
+    ]
+}
